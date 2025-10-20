@@ -1,0 +1,135 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+bin/
+out/
+
+# Gradle cache
+.gradle
+**/build/
+!src/**/build/
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# IDE - Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+# IDE - VSCode
+.vscode/
+*.code-workspace
+
+# IDE - NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Documentation and Tutorials (exclude from version control)
+docs/learning-path/
+docs/DOCKER-SETUP.md
+HELP.md
+PERSONAL-GUIDE.md
+CLAUDE.md
+
+# Keep only essential docs
+!README.md
+!LICENSE
+!CONTRIBUTING.md
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+logs/
+spring.log
+
+# Test output
+test-output/
+coverage/
+*.lcov
+
+# Spring Boot
+application-local.yml
+application-local.properties
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+.cache
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# JVM crash logs
+hs_err_pid*
+
+# Node.js (for future frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Frontend build artifacts
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/.nuxt/
+
+# Scripts (helper scripts that are environment-specific)
+scripts/
+
+# Local configuration files
+local.properties
