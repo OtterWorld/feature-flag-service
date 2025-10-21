@@ -1,25 +1,29 @@
-# Feature Flag Service (FFS)
+# Feature Flag Service (FFS) - Monorepo
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.25-blue.svg)](https://kotlinlang.org)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **A production-ready, reactive feature flag management service built with Spring Boot and Kotlin**
+> **A production-ready, full-stack feature flag management system with reactive backend and modern React frontend**
 
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
+- [Monorepo Structure](#-monorepo-structure)
 - [Key Features](#-key-features)
 - [Architecture](#-architecture)
 - [Quick Start](#-quick-start)
 - [API Documentation](#-api-documentation)
 - [Development](#-development)
 - [Docker Setup](#-docker-setup)
+- [Frontend Application](#-frontend-application)
 - [Learning Path](#-learning-path)
 - [Testing](#-testing)
 - [Monitoring & Observability](#-monitoring--observability)
 - [Security](#-security)
-- [Frontend](#-frontend-coming-soon)
+- [Deployment](#-deployment)
 - [Contributing](#-contributing)
 - [License](#-license)
 - [Resources](#-resources)
@@ -27,7 +31,10 @@
 
 ## 🎯 Overview
 
-Feature Flag Service (FFS) is a modern, reactive microservice for managing feature flags across your applications. Built with Spring Boot WebFlux and Kotlin coroutines, it provides high-performance, non-blocking feature flag evaluation and management.
+Feature Flag Service (FFS) is a modern, full-stack application for managing feature flags across your applications. The system consists of:
+
+- **Backend**: Reactive Spring Boot microservice built with Kotlin and WebFlux
+- **Frontend**: Modern React application with TypeScript and Vite
 
 ### What are Feature Flags?
 
@@ -37,6 +44,51 @@ Feature flags (also known as feature toggles) allow you to:
 - **A/B testing** - test different features with different user segments
 - **Kill switches** - quickly disable problematic features in production
 - **Development in production** - hide incomplete features from users
+
+## 📁 Monorepo Structure
+
+```
+feature-flag-service/
+├── backend/                    # Spring Boot Kotlin backend
+│   ├── src/
+│   │   ├── main/kotlin/       # Application source
+│   │   └── test/kotlin/       # Tests
+│   ├── build.gradle.kts       # Gradle build configuration
+│   ├── Dockerfile             # Backend Docker image
+│   ├── docs/                  # Backend documentation
+│   └── README.md              # Backend-specific docs
+│
+├── frontend/                   # React TypeScript frontend
+│   ├── src/
+│   │   ├── components/        # Reusable React components
+│   │   ├── pages/             # Page components
+│   │   ├── services/          # API integration services
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── types/             # TypeScript type definitions
+│   │   ├── contexts/          # React contexts
+│   │   ├── utils/             # Utility functions
+│   │   └── assets/            # Static assets
+│   ├── public/                # Public static files
+│   ├── package.json           # Node dependencies
+│   ├── vite.config.ts         # Vite configuration
+│   ├── Dockerfile             # Multi-stage Docker image
+│   ├── nginx.conf             # Production nginx config
+│   └── README.md              # Frontend-specific docs
+│
+├── docker-compose.yml         # Local development (both services)
+├── docker-compose.prod.yml    # Production reference
+├── .env.example               # Environment variables template
+├── .gitignore                 # Monorepo gitignore
+├── CLAUDE.md                  # AI assistant instructions
+└── README.md                  # This file
+```
+
+### Service Deployment
+
+Each service can be **deployed independently** for CI/CD:
+- **Backend**: `backend/Dockerfile` - Can be built and deployed separately
+- **Frontend**: `frontend/Dockerfile` - Multi-stage build (dev/prod targets)
+- **Local Dev**: `docker-compose.yml` - Runs both services together
 
 ## ✨ Key Features
 
@@ -75,27 +127,16 @@ Feature flags (also known as feature toggles) allow you to:
 | **Runtime** | JDK 21 |
 | **Testing** | JUnit 5, Testcontainers, MockK |
 
-### Project Structure
+### Backend Project Structure
 
 ```
-feature-flag-service/
-├── backend/                    # Spring Boot application
-│   ├── src/main/kotlin/
-│   │   └── com/feature_flag_service/
-│   │       ├── controller/     # REST endpoints
-│   │       ├── service/        # Business logic
-│   │       ├── repository/     # Data access
-│   │       ├── domain/         # Domain models
-│   │       ├── dto/            # Data transfer objects
-│   │       └── config/         # Configuration
-│   └── src/main/resources/
-│       ├── application.yml     # Application config
-│       └── db/migration/       # Flyway migrations
-├── domain/                     # Shared domain models
-├── client-sdk/                 # Client library (future)
-├── frontend/                   # React app (future)
-├── docker/                     # Docker configurations
-└── docs/                       # Documentation
+backend/src/main/kotlin/com/feature_flag_service/
+├── controller/                 # REST endpoints
+├── service/                    # Business logic
+├── repository/                 # Data access layer
+├── domain/                     # Domain models
+├── dto/                        # Data transfer objects
+└── config/                     # Spring configuration
 ```
 
 ## 🚀 Quick Start
@@ -115,17 +156,19 @@ Start the entire stack with a single command:
 git clone <repository-url>
 cd feature-flag-service
 
-# Start all services (PostgreSQL, Redis, Backend)
+# Start all services (PostgreSQL, Redis, Backend, Frontend)
 docker-compose up -d
 
 # View logs
-docker-compose logs -f backend
+docker-compose logs -f
 
 # Stop all services
 docker-compose down
 ```
 
-The API will be available at: **http://localhost:8080**
+**Services will be available at:**
+- Frontend: **http://localhost:3000**
+- Backend API: **http://localhost:8080**
 
 ### Option 2: Local Development
 
@@ -133,21 +176,25 @@ The API will be available at: **http://localhost:8080**
 # Start dependencies only (PostgreSQL + Redis)
 docker-compose up -d postgres redis
 
-# Run the application
-./gradlew bootRun
+# Run backend (from backend directory)
+cd backend
+./gradlew bootRun --args='--spring.profiles.active=test'
 
-# Or run with specific profile
-./gradlew bootRun --args='--spring.profiles.active=dev'
+# Run frontend (in another terminal, from frontend directory)
+cd frontend
+npm install
+npm run dev
 ```
 
 ### Verify Installation
 
 ```bash
-# Check health
+# Check backend health
 curl http://localhost:8080/actuator/health
+# Expected response: {"status":"UP"}
 
-# Expected response:
-# {"status":"UP"}
+# Check frontend (open in browser)
+open http://localhost:3000
 ```
 
 ## 📖 API Documentation
@@ -285,9 +332,13 @@ curl http://localhost:8080/actuator/prometheus
 
 ## 💻 Development
 
-### Build Commands
+### Backend Development
+
+All backend commands should be run from the `backend/` directory:
 
 ```bash
+cd backend
+
 # Build the project
 ./gradlew build
 
@@ -307,17 +358,48 @@ curl http://localhost:8080/actuator/prometheus
 ./gradlew check
 ```
 
-### Run Application
+**Run Backend Application:**
 
 ```bash
+cd backend
+
 # Default profile
 ./gradlew bootRun
 
 # Development profile (verbose logging)
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 
+# Test profile (with Testcontainers)
+./gradlew bootRun --args='--spring.profiles.active=test'
+
 # Production profile
 ./gradlew bootRun --args='--spring.profiles.active=prod'
+```
+
+### Frontend Development
+
+All frontend commands should be run from the `frontend/` directory:
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server (http://localhost:3000)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Type checking
+npm run type-check
+
+# Lint code
+npm run lint
 ```
 
 ### Database Migrations
@@ -343,11 +425,18 @@ ALTER TABLE feature_flags
 
 ### Full Stack Deployment
 
-The project includes a complete Docker Compose configuration for easy local development and deployment.
+The monorepo includes Docker Compose configurations for both local development and production reference.
 
 #### Architecture
 
 ```
+┌─────────────────┐
+│   Frontend UI   │ :3000
+│  (React/Vite)   │
+└────────┬────────┘
+         │
+         │ API calls
+         ▼
 ┌─────────────────┐
 │   Backend API   │ :8080
 │  (Spring Boot)  │
@@ -356,9 +445,9 @@ The project includes a complete Docker Compose configuration for easy local deve
     ┌────┴────┐
     │         │
 ┌───▼──┐  ┌──▼───┐
-│ Postgres │  │ Redis  │
-│  :5432  │  │ :6379 │
-└─────────┘  └────────┘
+│Postgres│  │ Redis │
+│ :5432  │  │:6379 │
+└────────┘  └───────┘
 ```
 
 #### Quick Start
@@ -387,11 +476,23 @@ docker-compose down -v
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
+| **Frontend UI** | http://localhost:3000 | N/A |
 | **Backend API** | http://localhost:8080 | N/A |
 | **PostgreSQL** | localhost:5432 | postgres/postgres |
 | **Redis** | localhost:6379 | No password |
 
 #### Docker Compose Services
+
+**Frontend Application (React)**
+- Built from: `./frontend/Dockerfile`
+- Port: `3000`
+- Target: `development` (with hot reload)
+- Depends on: Backend
+
+**Backend Application (Spring Boot)**
+- Built from: `./backend/Dockerfile`
+- Port: `8080`
+- Depends on: PostgreSQL, Redis
 
 **PostgreSQL Database**
 - Image: `postgres:15-alpine`
@@ -404,31 +505,39 @@ docker-compose down -v
 - Port: `6379`
 - Persistent volume: `redis-data`
 
-**Backend Application**
-- Built from: `./Dockerfile`
-- Port: `8080`
-- Depends on: PostgreSQL, Redis
+### Build and Push Docker Images
 
-### Build and Push Docker Image
-
+**Backend:**
 ```bash
-# Build Docker image
-docker build -t feature-flag-service:latest .
+cd backend
 
-# Run container
+# Build backend Docker image
+docker build -t feature-flag-backend:latest .
+
+# Run backend container
 docker run -d \
   -p 8080:8080 \
   -e SPRING_R2DBC_URL=r2dbc:postgresql://host.docker.internal:5432/feature_flags \
   -e SPRING_DATA_REDIS_HOST=host.docker.internal \
   --name ffs-backend \
-  feature-flag-service:latest
+  feature-flag-backend:latest
+```
 
-# View logs
-docker logs -f ffs-backend
+**Frontend:**
+```bash
+cd frontend
 
-# Stop container
-docker stop ffs-backend
-docker rm ffs-backend
+# Build frontend for development
+docker build --target development -t feature-flag-frontend:dev .
+
+# Build frontend for production
+docker build --target production -t feature-flag-frontend:prod .
+
+# Run frontend container (development)
+docker run -d -p 3000:3000 --name ffs-frontend feature-flag-frontend:dev
+
+# Run frontend container (production)
+docker run -d -p 80:80 --name ffs-frontend-prod feature-flag-frontend:prod
 ```
 
 ### Environment Variables
@@ -465,20 +574,21 @@ docker run -d \
 # 1. Start dependencies
 docker-compose up -d postgres redis
 
-# 2. Run application locally (for development)
+# 2. Run services locally (for development with hot reload)
+# Terminal 1 - Backend
+cd backend
 ./gradlew bootRun
 
-# 3. Make changes and rebuild
-./gradlew build
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
 
-# 4. Build new Docker image
-docker build -t feature-flag-service:dev .
+# 3. Or rebuild and restart services with Docker
+docker-compose up -d --build
 
-# 5. Update docker-compose to use new image
-docker-compose up -d --build backend
-
-# 6. Test
+# 4. Test
 curl http://localhost:8080/actuator/health
+open http://localhost:3000
 ```
 
 ### Accessing Services
@@ -546,13 +656,50 @@ docker rmi feature-flag-service:latest
 docker-compose up -d --build
 ```
 
+## 🎨 Frontend Application
+
+The React frontend provides a modern UI for managing feature flags.
+
+### Technology Stack
+- **React 18.3** - UI library
+- **TypeScript 5.5** - Type safety
+- **Vite 5.x** - Fast build tool and dev server
+- **React Router 6** - Client-side routing
+- **Axios** - HTTP client for API calls
+
+### Directory Structure
+```
+frontend/src/
+├── components/     # Reusable UI components
+├── pages/          # Page-level components
+├── services/       # API integration layer
+├── hooks/          # Custom React hooks
+├── types/          # TypeScript type definitions
+├── contexts/       # React context providers
+├── utils/          # Helper functions
+└── assets/         # Static assets (images, icons)
+```
+
+### API Integration
+The frontend communicates with the backend via:
+- **Development**: Vite proxy to `http://localhost:8080`
+- **Production**: Nginx proxy to backend service
+
+### Building for Production
+```bash
+cd frontend
+npm run build  # Creates optimized build in dist/
+```
+
+For more details, see [frontend/README.md](frontend/README.md).
+
 ## 🎓 Learning Path
 
 This project includes a comprehensive **step-by-step learning guide** for mastering Spring Boot and reactive programming.
 
 ### For Developers New to Spring Boot
 
-Follow the detailed learning path in [`docs/learning-path/`](./docs/learning-path/):
+Follow the detailed learning path in [`backend/docs/learning-path/`](./backend/docs/learning-path/):
 
 - 📚 **[Complete Roadmap](./docs/learning-path/00-ROADMAP.md)** - Start here
 - 🎯 **13 Progressive Steps** - From basics to advanced
@@ -570,7 +717,11 @@ Follow the detailed learning path in [`docs/learning-path/`](./docs/learning-pat
 
 ## 🧪 Testing
 
+### Backend Tests
+
 ```bash
+cd backend
+
 # Run all tests
 ./gradlew test
 
@@ -584,12 +735,26 @@ Follow the detailed learning path in [`docs/learning-path/`](./docs/learning-pat
 ./gradlew test --tests "*Test"
 ```
 
-### Test Categories
-
+**Test Categories:**
 - **Unit Tests** - Service layer business logic
 - **Integration Tests** - Database and repository layer (with Testcontainers)
 - **API Tests** - REST endpoint testing with WebTestClient
 - **Contract Tests** - API documentation with Spring REST Docs
+
+### Frontend Tests
+
+```bash
+cd frontend
+
+# Run tests (once implemented)
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
+```
 
 ## 📊 Monitoring & Observability
 
@@ -638,31 +803,65 @@ Feature flag management endpoints will require:
 
 Evaluation endpoint (`/api/v1/flags/evaluate`) is public for client applications.
 
-## 📦 Frontend (Coming Soon)
+## 🚢 Deployment
 
-The monorepo is prepared for a React frontend application.
+### Separate Service Deployment (CI/CD Ready)
 
-**Placeholder setup:**
+The monorepo is designed for independent deployment of frontend and backend:
 
+**Backend Deployment:**
 ```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+cd backend
+docker build -t your-registry/feature-flag-backend:1.0.0 .
+docker push your-registry/feature-flag-backend:1.0.0
 ```
 
-The frontend will integrate with the backend API and provide:
-- Dashboard for managing feature flags
-- Real-time flag status monitoring
-- User-friendly flag creation and editing
-- Analytics and usage metrics
+**Frontend Deployment:**
+```bash
+cd frontend
+docker build --target production -t your-registry/feature-flag-frontend:1.0.0 .
+docker push your-registry/feature-flag-frontend:1.0.0
+```
+
+### Production Docker Compose
+
+For reference, use `docker-compose.prod.yml`:
+
+```bash
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env with production values
+
+# Start production stack
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### CI/CD Strategies
+
+The monorepo supports multiple CI/CD approaches:
+
+1. **Path-based Triggers** - Build only changed services
+   ```yaml
+   # Example GitHub Actions
+   on:
+     push:
+       paths:
+         - 'backend/**'  # Only build backend if changed
+         - 'frontend/**' # Only build frontend if changed
+   ```
+
+2. **Separate Pipelines** - Independent workflows for each service
+3. **Monorepo Pipeline** - Single pipeline with conditional builds
+
+### Environment Variables
+
+See `.env.example` for all configurable options.
+
+**Key variables:**
+- `POSTGRES_PASSWORD` - Database password
+- `SPRING_PROFILES_ACTIVE` - Backend profile (dev/prod)
+- `VITE_API_URL` - Frontend API endpoint
+- `CORS_ALLOWED_ORIGINS` - Allowed CORS origins
 
 ## 🤝 Contributing
 
@@ -680,11 +879,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Resources
 
+### Documentation
+- [Backend Documentation](./backend/README.md) - Backend-specific details
+- [Frontend Documentation](./frontend/README.md) - Frontend-specific details
 - [CLAUDE.md](./CLAUDE.md) - AI assistant guidance
-- [Learning Path](./docs/learning-path/00-ROADMAP.md) - Comprehensive tutorials
+- [Learning Path](./backend/docs/learning-path/00-ROADMAP.md) - Comprehensive tutorials
+
+### External Resources
 - [Spring Boot Docs](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [Kotlin + Spring](https://docs.spring.io/spring-framework/reference/languages/kotlin.html)
 - [Project Reactor](https://projectreactor.io/docs/core/release/reference/)
+- [React Documentation](https://react.dev/)
+- [Vite Documentation](https://vitejs.dev/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 
 ## 💬 Support
 
@@ -694,4 +901,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using Kotlin and Spring Boot**
+**Built with ❤️ using Kotlin, Spring Boot, React, and TypeScript**
