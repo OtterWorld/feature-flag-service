@@ -55,7 +55,6 @@ backend/PERSONAL-GUIDE.md
 
 # Keep only essential docs
 !README.md
-!CLAUDE.md
 !LICENSE
 !CONTRIBUTING.md
 
@@ -80,9 +79,8 @@ application-local.yml
 application-local.properties
 
 # Docker
-docker-compose.override.yml
 docker-compose.yml.bak
-.dockerignore
+*.bak
 
 # Database
 *.db

@@ -1,20 +1,20 @@
-# Multi-stage Dockerfile for Feature Flag Service
+# Multi-stage Dockerfile for Feature Flag Service (Multi-Project Build)
 # Stage 1: Build the application
 FROM gradle:8.5-jdk21-alpine AS build
 
 WORKDIR /app
 
-# Copy Gradle wrapper and build files
+# Copy Gradle wrapper and root configuration from project root
 COPY gradlew .
 COPY gradle gradle/
 COPY settings.gradle.kts .
-COPY build.gradle.kts .
 
-# Copy source code
-COPY src src/
+# Copy backend-specific files
+COPY backend/build.gradle.kts backend/
+COPY backend/src backend/src/
 
-# Build the application (skip tests for faster builds)
-RUN ./gradlew bootJar --no-daemon -x test
+# Build the backend subproject
+RUN ./gradlew :backend:bootJar --no-daemon -x test
 
 # Stage 2: Create runtime image
 FROM eclipse-temurin:21-jre-alpine
@@ -24,8 +24,8 @@ WORKDIR /app
 # Create non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 
-# Copy the JAR file from build stage
-COPY --from=build /app/build/libs/*.jar app.jar
+# Copy the JAR file from build stage (backend subproject path)
+COPY --from=build /app/backend/build/libs/*.jar app.jar
 
 # Change ownership to non-root user
 RUN chown -R spring:spring /app

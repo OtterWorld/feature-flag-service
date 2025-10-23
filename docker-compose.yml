@@ -40,8 +40,8 @@ services:
   # Backend Application (Spring Boot)
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .                    # CHANGED: Root directory
+      dockerfile: backend/Dockerfile # CHANGED: Relative to root
     container_name: ffs-backend
     ports:
       - "8080:8080"
@@ -76,14 +76,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    volumes:
-      # Optional: mount source for hot reload in development
-      # - ./backend/src:/app/src
     networks:
       - ffs-network
 
@@ -92,19 +89,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: development  # Use development stage for local dev
+      target: development
     container_name: ffs-frontend
     ports:
       - "3000:3000"
     environment:
-      # API URL for backend communication
       VITE_API_URL: http://localhost:8080
     volumes:
-      # Mount source code for hot reload
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
       - ./frontend/index.html:/app/index.html
-      # Prevent node_modules from being overwritten
       - /app/node_modules
     depends_on:
       - backend
