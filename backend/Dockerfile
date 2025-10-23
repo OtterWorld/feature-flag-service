@@ -1,47 +1,33 @@
-# Multi-stage Dockerfile for Feature Flag Service (Multi-Project Build)
-# Stage 1: Build the application
 FROM gradle:8.5-jdk21-alpine AS build
 
 WORKDIR /app
 
-# Copy Gradle wrapper and root configuration from project root
+# Layer 1: Gradle wrapper (rarely changes)
 COPY gradlew .
 COPY gradle gradle/
-COPY settings.gradle.kts .
 
-# Copy backend-specific files
+# Layer 2: Build configuration (rarely changes)
+COPY settings.gradle.kts .
 COPY backend/build.gradle.kts backend/
+
+# Layer 3: Download dependencies (cached unless dependencies change)
+RUN ./gradlew :backend:dependencies --no-daemon || true
+
+# Layer 4: Source code (changes frequently)
 COPY backend/src backend/src/
 
-# Build the backend subproject
+# Layer 5: Build (only re-runs if source or dependencies changed)
 RUN ./gradlew :backend:bootJar --no-daemon -x test
 
-# Stage 2: Create runtime image
+# Runtime stage (unchanged)
 FROM eclipse-temurin:21-jre-alpine
-
 WORKDIR /app
-
-# Create non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
-
-# Copy the JAR file from build stage (backend subproject path)
 COPY --from=build /app/backend/build/libs/*.jar app.jar
-
-# Change ownership to non-root user
 RUN chown -R spring:spring /app
-
-# Switch to non-root user
 USER spring:spring
-
-# Expose application port
 EXPOSE 8080
-
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
-
-# Set JVM options for containerized environment
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
-
-# Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

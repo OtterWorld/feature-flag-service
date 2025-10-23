@@ -48,8 +48,7 @@ $RECYCLE.BIN/
 .Trash-*
 
 # Documentation and Tutorials (exclude from version control)
-backend/docs/learning-path/
-backend/docs/DOCKER-SETUP.md
+backend/docs/
 backend/HELP.md
 backend/PERSONAL-GUIDE.md
 
